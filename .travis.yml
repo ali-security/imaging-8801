@@ -1,12 +1,24 @@
 language: go
+
+env:
+  global:
+    - GO111MODULE=on
+
 go:
   - "1.10.x"
   - "1.11.x"
   - "1.12.x"
 
-before_install:
-  - go get github.com/mattn/goveralls
-
 script:
-  - go test -v -race -cover
-  - $GOPATH/bin/goveralls -service=travis-ci
+  - if [[ "$TRAVIS_GO_VERSION" != "1.10.x" ]]; then
+    go test -v -race ./...;
+    else
+    export GOPATH=$HOME/gopath;
+    export PATH=$PATH:$GOPATH/bin;
+    mkdir -p $GOPATH/src $GOPATH/bin $GOPATH/pkg;
+    git clone https://github.com/golang/image $GOPATH/src/golang.org/x/image;
+    git -C $GOPATH/src/golang.org/x/image checkout c73c2afc3b812cdd6385de5a50616511c4a3d458;
+    mkdir -p $GOPATH/src/github.com/disintegration/imaging;
+    cp -r $GOPATH/src/golang.org/x/image $GOPATH/src/github.com/disintegration/imaging;
+    go test -v $GOPATH/src/github.com/disintegration/imaging/...;
+    fi
